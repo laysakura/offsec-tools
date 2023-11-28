@@ -17,6 +17,7 @@ class Args:
         parser.add_argument(
             "-d", "--dry-run", action="store_true", help="Perform a dry run"
         )
+        parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode")
         parser.add_argument(
             "nmapopts", nargs="*", help="Optional arguments to pass to nmap"
         )
@@ -25,6 +26,7 @@ class Args:
         self.ip = args.ip
         self.full = args.full
         self.dry_run = args.dry_run
+        self.verbose = args.verbose
         self.nmapopts = args.nmapopts
 
 
@@ -84,7 +86,7 @@ class Nmap:
 
 
 args = Args()
-logger = CmdLogger()
+logger = CmdLogger(args.verbose)
 
 nmap = Nmap(logger, args.ip, args.dry_run, args.nmapopts)
 

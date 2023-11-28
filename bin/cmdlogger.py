@@ -2,12 +2,13 @@ import logging
 
 
 class CmdLogger:
-    def __init__(self, level=logging.INFO):
+    def __init__(self, verbose=false):
         logger = logging.getLogger(__name__)
-        logger.setLevel(logging.INFO)
-        # fmt_info_yellow = logging.Formatter('\033[33m[*] Running: %(message)s\033[0m')
+        if verbose:
+            logger.setLevel(logging.DEBUG)
+        else:
+            logger.setLevel(logging.INFO)
         stream_handler = logging.StreamHandler()
-        # stream_handler.setFormatter(fmt_info_yellow)
         logger.addHandler(stream_handler)
 
         self.logger = logger
