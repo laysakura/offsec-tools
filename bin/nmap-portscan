@@ -64,7 +64,7 @@ class Nmap:
         else:
             self.logger.finish("Print open ports so far:")
             sorted_ports = sorted(nmap.open_ports)
-            print(",".join(sorted_ports))
+            print(",".join([str(p) for p in sorted_ports]))
 
     def _update_open_ports(self, log_filename):
         with open(log_filename, "r") as f:
