@@ -54,10 +54,12 @@ class Nmap:
         if not self.dry_run:
             ret = subprocess.run(
                 ["nmap", "-oN", log_filename] + args + [self.ip],
-                # nmap stdout to stderr
-                stderr=sys.stdout.buffer,
-                stdout=None,
+                # capture nmap stdout
+                stdout=subprocess.PIPE,
             )
+            # nmap stdout to stderr
+            self.logger.cmd_output(ret.stdout.decode("utf-8"))
+
             if ret.returncode != 0:
                 self.logger.abort("")
                 raise Exception("nmap command failed")

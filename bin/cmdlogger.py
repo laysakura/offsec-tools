@@ -25,6 +25,9 @@ class CmdLogger:
     def abort(self, msg):
         self.logger.info(self.red(f"[x] Aborted: {msg}"))
 
+    def cmd_output(self, cmdout):
+        self.logger.debug(cmdout)
+
     def _yellow(self, s):
         return "\033[33m%s\033[0m" % s
 
