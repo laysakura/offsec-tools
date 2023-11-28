@@ -23,6 +23,7 @@ class Args:
         args = parser.parse_args()
 
         self.ip = args.ip
+        self.full = args.full
         self.dry_run = args.dry_run
         self.nmapopts = args.nmapopts
 
@@ -82,5 +83,5 @@ nmap = Nmap(logger, args.ip, args.dry_run, args.nmapopts)
 
 nmap.run(["-sS", "-T4", "-F"])
 if args.full:
-    nmap.run(["-sS", "-p-"])    
+    nmap.run(["-sS", "-p-"])
 nmap.finish()
