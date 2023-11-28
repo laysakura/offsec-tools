@@ -3,6 +3,7 @@
 import argparse
 import subprocess
 import os
+import sys
 import datetime
 
 from cmdlogger import CmdLogger
@@ -51,7 +52,10 @@ class Nmap:
         self.logger.running(f"nmap -oN {log_filename} {args_space_separated} {self.ip}")
 
         if not self.dry_run:
-            ret = subprocess.run(["nmap", "-oN", log_filename] + args + [self.ip])
+            ret = subprocess.run(
+                ["nmap", "-oN", log_filename] + args + [self.ip],
+                stderr=sys.stdout.buffer, # nmap stdout to stderr
+            )
             if ret.returncode != 0:
                 self.logger.abort("")
                 raise Exception("nmap command failed")
