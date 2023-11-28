@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+
+import argparse
+import subprocess
+import os
+import datetime
+
+from cmdlogger import CmdLogger
+
+
+class Args:
+    def __init__(self):
+        parser = argparse.ArgumentParser(description="Nmap Port Scanner")
+        parser.add_argument("ip", help="IP address to scan")
+        parser.add_argument(
+            "-d", "--dry-run", action="store_true", help="Perform a dry run"
+        )
+        parser.add_argument(
+            "nmapopts", nargs="*", help="Optional arguments to pass to nmap"
+        )
+        # parser.add_argument('nmap_args', nargs=argparse.REMAINDER, help="Optional arguments to pass to nmap")
+        args = parser.parse_args()
+
+        self.ip = args.ip
+        self.dry_run = args.dry_run
+        self.nmapopts = args.nmapopts
+
+
+class Nmap:
+    def __init__(self, logger, ip, dry_run=False, nmapopts=[]):
+        self.logger = logger
+        self.ip = ip
+        self.dry_run = dry_run
+        self.nmapopts = nmapopts
+
+        self.open_ports = set()
+
+        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        self.dirname = f"nmap-portscan-{timestamp}"
+
+        os.mkdir(self.dirname)
+        self.logger.progress(f"Log directory: {self.dirname}")
+
+    def run(self, args_arr):
+        args = self.nmapopts + args_arr
+        args_space_separated = " ".join(args)
+        args_underscore_separated = "_".join(args)
+        log_filename = f"{self.dirname}/{args_underscore_separated}.log"
+
+        self.logger.running(f"nmap -oN {log_filename} {args_space_separated} {self.ip}")
+
+        if not self.dry_run:
+            ret = subprocess.run(["nmap", "-oN", log_filename] + args + [self.ip])
+            if ret.returncode != 0:
+                self.logger.abort("")
+                raise Exception("nmap command failed")
+            else:
+                self.logger.progress(f"Dumped: {log_filename}")
+                self._update_open_ports(log_filename)
+
+    def finish(self):
+        if self.dry_run:
+            pass
+        else:
+            self.logger.finish("Print open ports so far:")
+            sorted_ports = sorted(nmap.open_ports)
+            print(",".join(sorted_ports))
+
+    def _update_open_ports(self, log_filename):
+        with open(log_filename, "r") as f:
+            for line in f.readlines():
+                if "/tcp" in line and "open" in line:
+                    port = int(line.split("/")[0])
+                    self.open_ports.add(port)
+
+
+args = Args()
+logger = CmdLogger()
+
+nmap = Nmap(logger, args.ip, args.dry_run, args.nmapopts)
+
+nmap.run(["-sS", "-T4", "-F"])
+nmap.run(["-sS", "-p-"])
+nmap.finish()
