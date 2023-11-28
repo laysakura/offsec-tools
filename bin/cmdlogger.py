@@ -2,7 +2,7 @@ import logging
 
 
 class CmdLogger:
-    def __init__(self, verbose=false):
+    def __init__(self, verbose=False):
         logger = logging.getLogger(__name__)
         if verbose:
             logger.setLevel(logging.DEBUG)
