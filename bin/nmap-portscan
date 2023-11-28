@@ -12,7 +12,7 @@ class Args:
     def __init__(self):
         parser = argparse.ArgumentParser(description="Nmap Port Scanner")
         parser.add_argument("ip", help="IP address to scan")
-        parse.add_argument("-f", "--full", action="store_true", help="Scan all ports")
+        parser.add_argument("-f", "--full", action="store_true", help="Scan all ports")
         parser.add_argument(
             "-d", "--dry-run", action="store_true", help="Perform a dry run"
         )
