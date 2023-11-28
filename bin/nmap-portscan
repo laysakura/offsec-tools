@@ -19,7 +19,6 @@ class Args:
         parser.add_argument(
             "nmapopts", nargs="*", help="Optional arguments to pass to nmap"
         )
-        # parser.add_argument('nmap_args', nargs=argparse.REMAINDER, help="Optional arguments to pass to nmap")
         args = parser.parse_args()
 
         self.ip = args.ip
