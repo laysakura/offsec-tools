@@ -12,6 +12,7 @@ class Args:
     def __init__(self):
         parser = argparse.ArgumentParser(description="Nmap Port Scanner")
         parser.add_argument("ip", help="IP address to scan")
+        parse.add_argument("-f", "--full", action="store_true", help="Scan all ports")
         parser.add_argument(
             "-d", "--dry-run", action="store_true", help="Perform a dry run"
         )
@@ -80,5 +81,6 @@ logger = CmdLogger()
 nmap = Nmap(logger, args.ip, args.dry_run, args.nmapopts)
 
 nmap.run(["-sS", "-T4", "-F"])
-nmap.run(["-sS", "-p-"])
+if args.full:
+    nmap.run(["-sS", "-p-"])    
 nmap.finish()
