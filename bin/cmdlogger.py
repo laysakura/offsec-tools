@@ -12,7 +12,6 @@ class CmdLogger:
         logger.addHandler(stream_handler)
 
         self.logger = logger
-        self.level = level
 
     def running(self, cmdline):
         self.logger.info(self._yellow(f"[*] Running: {cmdline}"))
