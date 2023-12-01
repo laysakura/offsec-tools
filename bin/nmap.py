@@ -1,51 +1,45 @@
-#!/usr/bin/env python3
-
-import argparse
 import subprocess
 import os
 import sys
 import datetime
 
-from cmdlogger import CmdLogger
-
-
-class Args:
-    def __init__(self):
-        parser = argparse.ArgumentParser(description="Nmap Port Scanner")
-        parser.add_argument("ip", help="IP address to scan")
-        parser.add_argument("-f", "--full", action="store_true", help="Scan all ports")
-        parser.add_argument(
-            "-d", "--dry-run", action="store_true", help="Perform a dry run"
-        )
-        parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode")
-        parser.add_argument(
-            "nmapopts", nargs="*", help="Optional arguments to pass to nmap"
-        )
-        args = parser.parse_args()
-
-        self.ip = args.ip
-        self.full = args.full
-        self.dry_run = args.dry_run
-        self.verbose = args.verbose
-        self.nmapopts = args.nmapopts
-
 
 class Nmap:
-    def __init__(self, logger, ip, dry_run=False, nmapopts=[]):
+    def __init__(self, logger, ip, dry_run=False, full_ports=False, nmapopts=[]):
         self.logger = logger
         self.ip = ip
         self.dry_run = dry_run
+        self.full_ports = full_ports
         self.nmapopts = nmapopts
 
         self.open_ports = set()
 
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.dirname = f"nmap-portscan-{timestamp}"
+        self.dirname = f"nmap-mania-{timestamp}"
 
         os.mkdir(self.dirname)
         self.logger.progress(f"Log directory: {self.dirname}")
 
-    def run(self, args_arr):
+    def scan_ports(self):
+        self._run_nmap_cmd(["-sS", "-T4", "-F"])
+        if self.full_ports:
+            self._run_nmap_cmd(["-sS", "-p-"])
+
+    def scan_versions(self):
+        self._scan_open_ports(["-sV"])
+
+    def scan_vuln(self):
+        self._scan_open_ports(["--script", "vuln"])
+
+    def log_ports(self):
+        if self.dry_run:
+            pass
+        else:
+            self.logger.finish("Print open ports so far:")
+            sorted_ports = sorted(self.open_ports)
+            print(",".join([str(p) for p in sorted_ports]))
+
+    def _run_nmap_cmd(self, args_arr):
         args = self.nmapopts + args_arr
         args_space_separated = " ".join(args)
         args_underscore_separated = "_".join(args)
@@ -69,13 +63,15 @@ class Nmap:
                 self.logger.progress(f"Dumped: {log_filename}")
                 self._update_open_ports(log_filename)
 
-    def finish(self):
-        if self.dry_run:
-            pass
+    def _scan_open_ports(self, args_arr):
+        if self.open_ports:
+            self._run_nmap_cmd(args_arr + [f"-p{self._open_ports_str()}"])
         else:
-            self.logger.finish("Print open ports so far:")
-            sorted_ports = sorted(nmap.open_ports)
-            print("\n".join([str(p) for p in sorted_ports]))
+            self.logger.abort("No open ports to scan deeper")
+
+    def _open_ports_str(self):
+        sorted_ports = sorted(self.open_ports)
+        return ",".join([str(p) for p in sorted_ports])
 
     def _update_open_ports(self, log_filename):
         with open(log_filename, "r") as f:
@@ -83,14 +79,3 @@ class Nmap:
                 if "/tcp" in line and "open" in line:
                     port = int(line.split("/")[0])
                     self.open_ports.add(port)
-
-
-args = Args()
-logger = CmdLogger(args.verbose)
-
-nmap = Nmap(logger, args.ip, args.dry_run, args.nmapopts)
-
-nmap.run(["-sS", "-T4", "-F"])
-if args.full:
-    nmap.run(["-sS", "-p-"])
-nmap.finish()

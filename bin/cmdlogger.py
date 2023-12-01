@@ -23,7 +23,8 @@ class CmdLogger:
         self.logger.info(self._green(f"[0] Success: {msg}"))
 
     def abort(self, msg):
-        self.logger.info(self.red(f"[x] Aborted: {msg}"))
+        self.logger.error(self.red(f"[x] Aborted: {msg}"))
+        raise SystemExit(1)
 
     def cmd_output(self, cmdout):
         self.logger.debug(cmdout)
